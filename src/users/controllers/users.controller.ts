@@ -6,6 +6,9 @@ import { User } from '../schemas/users.schema';
 import { AuthGuard } from 'src/auth/middlewares/jwt-auth.guard';
 import { RoleGuard } from 'src/auth/middlewares/role.guard';
 import { Roles } from 'src/auth/middlewares/roles.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+
+@ApiTags('Users') 
 
 @Controller('users')
 export class UsersController {
@@ -18,7 +21,9 @@ export class UsersController {
   }
 
   @UseGuards(AuthGuard, RoleGuard)
-  @Roles('admin') 
+  @Roles('admin')
+  @ApiBearerAuth() 
+   
   @Get()
   async findAll(): Promise<User[]> {
     return this.usersService.findAll();

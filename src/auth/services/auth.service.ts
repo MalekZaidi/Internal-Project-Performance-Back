@@ -44,6 +44,8 @@ export class AuthService {
     return { token };
   }
   
+ 
+  
 
   async validateUser(login: string, password: string): Promise<User | null> {
     const user = await this.userModel.findOne({ login }); 
