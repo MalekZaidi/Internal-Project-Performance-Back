@@ -13,8 +13,12 @@ export class RoleGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || !user.role) {
-      throw new ForbiddenException('You are not authenticated or do not have a role assigned');
+    if (!user  ) {
+      throw new ForbiddenException('You are not authenticated');
+    } 
+
+    if (!user.role) {
+      throw new ForbiddenException('You do not have a role assigned')
     }
 
     console.log('🔑 User Role:', user.role);

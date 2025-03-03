@@ -14,7 +14,8 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  
+  @UseGuards(AuthGuard,RoleGuard)
+  @Roles('admin')
   @Post()
   async create(@Body() createUserDto: CreateUserDto): Promise<User> {
     return this.usersService.create(createUserDto);
@@ -23,13 +24,14 @@ export class UsersController {
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('admin')
   @ApiBearerAuth() 
-   
   @Get()
+  
   async findAll(): Promise<User[]> {
     return this.usersService.findAll();
   }
 
-  
+  @UseGuards(AuthGuard,RoleGuard)
+  @Roles('project_manager')
   @Get(':id')
   async findById(@Param('id') id: string): Promise<User> {
     const user = await this.usersService.findById(id);
@@ -39,13 +41,15 @@ export class UsersController {
     return user;
   }
 
-  
+  @UseGuards(AuthGuard,RoleGuard)
+  @Roles('admin','project_manager')
   @Put(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<User> {
     return this.usersService.update(id, updateUserDto);
   }
 
-  
+  @UseGuards(AuthGuard,RoleGuard)
+  @Roles('admin')
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<{ message: string }> {
     await this.usersService.delete(id);

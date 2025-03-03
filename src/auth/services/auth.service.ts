@@ -6,6 +6,9 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from 'src/users/schemas/users.schema';
 import { ConfigService } from '@nestjs/config';
 
+
+const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -14,76 +17,53 @@ export class AuthService {
     private readonly configService: ConfigService, 
   ) {}
 
-  async login(login: string, password: string): Promise<{ token: string }> {
-    const user = await this.userModel.findOne({ login });
-  
-    if (!user) {
-      console.log('❌ User not found');
-      throw new UnauthorizedException('Invalid email or password');
+  private async findAndValidateUser(login: string, password: string): Promise<UserDocument> {
+    const user = await this.userModel.findOne({ login }).lean();
+    if (!user ) {
+      throw new UnauthorizedException('Invalid email');
     }
-  
-    console.log('✅ User found:', user);
-  
+    
+    if ( ! await bcrypt.compare(password, user.password)){
+        throw new UnauthorizedException('Invalid Password');
+
+    }
+
     if (!user.isActive) {
       throw new UnauthorizedException('Account is not active');
     }
   
-    console.log('🔑 Hashed password in DB:', user.password);
-    console.log('📝 Password entered:', password);
-  
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    console.log('✅ Password match:', passwordMatch);
-  
-    if (!passwordMatch) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-  
-    const secret = this.configService.get<string>('JWT_SECRET');
-    const token = this.jwtService.sign({ userId: user._id }, { secret });
-  
-    return { token };
-  }
-  
- 
-  
-
-  async validateUser(login: string, password: string): Promise<User | null> {
-    const user = await this.userModel.findOne({ login }); 
-
-    if (!user) {
-      return null;
-    }
-
-    const passwordMatch = await bcrypt.compare(password, user.password);
-
-    if (!passwordMatch) {
-      throw new UnauthorizedException();
-    }
-
     return user;
   }
+  
 
   async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
     try {
-      const user = await this.userModel.findById(userId); 
-
+      const user = await this.userModel.findById(userId).lean(); 
+      
       if (!user) {
         throw new NotFoundException('User not found');
       }
 
       const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      
 
+      const sameAsCurrent= await bcrypt.compare(currentPassword,newPassword);
+
+      if (!sameAsCurrent){
+          throw new UnauthorizedException('You Cant use the same password');
+        
+      }
       if (!isPasswordValid) {
         throw new UnauthorizedException('Invalid current password');
       }
 
-      if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(newPassword)) {
+      if (PASSWORD_REGEX.test(newPassword)) {
         throw new UnauthorizedException(
           'The password must be at least 8 characters long and contain at least one letter and one number',
         );
       }
-
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      const salt = await bcrypt.genSalt(10); 
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
       await this.userModel.updateOne({ _id: userId }, { password: hashedPassword }, { validateBeforeSave: false });
 
       console.log('Password changed successfully');
@@ -92,4 +72,16 @@ export class AuthService {
       throw new UnauthorizedException('Failed to change password');
     }
   }
+
+  async login(login: string, password: string): Promise<{ token: string }> {
+    const user  = await this.findAndValidateUser(login,password);
+    console.log('User Found Testing decoding  : ', user );
+
+    const secret   = await this.configService.get<string>('JWT_SECRET');
+    const token  = await this.jwtService.signAsync({userId:user._id, userRole:user.role},{secret});
+    return { token };
+  }
+
 }
+
+

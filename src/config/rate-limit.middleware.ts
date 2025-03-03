@@ -8,7 +8,7 @@ export class RateLimitMiddleware implements NestMiddleware {
   constructor() {
     this.limiter = rateLimit({
       windowMs: 15 * 60 * 1000, 
-      max: 3, 
+      max: 15, 
       message: 'Too many login attempts from this IP, please try again later',
     });
   }

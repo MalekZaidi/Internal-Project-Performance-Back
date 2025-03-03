@@ -18,11 +18,11 @@ export class UsersService {
 
  
   async findAll(): Promise<User[]> {
-    return this.userModel.find().exec();
+    return this.userModel.find().lean().exec();
   }
 
   async findById(id: string): Promise<User> {
-    const user = await this.userModel.findById(id).exec();
+    const user = await this.userModel.findById(id).lean().exec();
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -34,7 +34,7 @@ export class UsersService {
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
-
+    
     const updatedUser = await this.userModel.findByIdAndUpdate(id, updateUserDto, { new: true, runValidators: true }).exec();
     
     if (!updatedUser) {

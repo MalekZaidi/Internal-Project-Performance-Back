@@ -26,41 +26,48 @@ import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nes
         required: ['login', 'password'],
       },
     })
+
     @ApiResponse({ status: 200, description: 'Login successful' })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
-
     @Post('login')
-async login(@Body('login') login: string, @Body('password') password: string, @Res() res) {
- const result = await this.authService.login(login,password);
-  if (!result) {
-    res.status(401).json({ message: 'Unauthorized' });
-    return;
-  }
+    async login(@Body('login') login: string, @Body('password') password: string, @Res() res) {
+      const result = await this.authService.login(login,password);
+      if (!result) {
+          res.status(401).json({ message: 'Unauthorized' });
+          return;
+        }
 
-  res.status(200).json({ message: 'Login successful', token: result.token });
-}
-  
+        res.status(200).json({ message: 'Login successful', token: result.token });
+      }
+
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Get user profile' })
   @ApiResponse({ status: 200, description: 'User profile retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiBearerAuth() 
   @Get('profile')
-
   async getProfile(@Request() req) {
-    const payload=req.user ;
-    const user = await this.userModel.findById(payload);
-    console.log('User ID:', user._id); 
-    console.log('User:', user); 
-    return user; 
-
-
+    return req.user; 
   }
+
+
+  @ApiBearerAuth()
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        currentPassword: { type: 'string' },
+        newPassword: { type: 'string' },
+      },
+      required: ['currentPassword', 'newPassword'],
+    },
+  })
+
   @UseGuards(AuthGuard) 
 @Post('change-password')
 async changePassword(@Request() req, @Body() body: { currentPassword: string, newPassword: string }): Promise<void> {
     try {
-        const userId = req.user.userId; 
+        const userId = req.user._id;
         await this.authService.changePassword(userId, body.currentPassword, body.newPassword);
     } catch (error) {
         throw new UnauthorizedException('Failed to change password');

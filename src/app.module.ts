@@ -1,14 +1,13 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
 import { LoggerMiddleware } from './config/logging.interceptor';
 import { RateLimitMiddleware } from './config/rate-limit.middleware';
+import { ProjectsModule } from './projects/projects.module';
 
 @Module({
   imports: [
@@ -16,15 +15,7 @@ import { RateLimitMiddleware } from './config/rate-limit.middleware';
     MongooseModule.forRoot(process.env.MONGODB_URI), 
     UsersModule,
     AuthModule,
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRATION') }, 
-      }),
-    }),
+    ProjectsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
