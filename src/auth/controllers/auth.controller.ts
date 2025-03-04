@@ -62,8 +62,7 @@ import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nes
       required: ['currentPassword', 'newPassword'],
     },
   })
-
-  @UseGuards(AuthGuard) 
+@UseGuards(AuthGuard) 
 @Post('change-password')
 async changePassword(@Request() req, @Body() body: { currentPassword: string, newPassword: string }): Promise<void> {
     try {

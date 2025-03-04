@@ -45,23 +45,22 @@ export class AuthService {
       }
 
       const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
-      
 
-      const sameAsCurrent= await bcrypt.compare(currentPassword,newPassword);
-
-      if (!sameAsCurrent){
-          throw new UnauthorizedException('You Cant use the same password');
-        
-      }
       if (!isPasswordValid) {
         throw new UnauthorizedException('Invalid current password');
       }
 
-      if (PASSWORD_REGEX.test(newPassword)) {
+      if (!PASSWORD_REGEX.test(newPassword)) {
         throw new UnauthorizedException(
           'The password must be at least 8 characters long and contain at least one letter and one number',
         );
       }
+      const sameAsCurrent = await bcrypt.compare(newPassword,user.password);
+
+      if (  sameAsCurrent) {
+        throw new UnauthorizedException("You can't use the same password");
+      }
+
       const salt = await bcrypt.genSalt(10); 
       const hashedPassword = await bcrypt.hash(newPassword, salt);
       await this.userModel.updateOne({ _id: userId }, { password: hashedPassword }, { validateBeforeSave: false });
@@ -81,6 +80,9 @@ export class AuthService {
     const token  = await this.jwtService.signAsync({userId:user._id, userRole:user.role},{secret});
     return { token };
   }
+
+
+
 
 }
 

@@ -13,16 +13,18 @@ export class LoggerMiddleware implements NestMiddleware {
     if (sanitizedHeaders.authorization) {
       sanitizedHeaders.authorization = '***SECRET***';
     }
-
     const sanitizedBody = { ...body };
-    if (sanitizedBody.password || sanitizedBody.newPassword || sanitizedBody.currentPassword){
-        sanitizedBody.password='***SECRET***',
-        sanitizedBody.newPassword='***SECRET***',
-        sanitizedBody.currentPassword='***SECRET***'
+    if (sanitizedBody.password ){
+        sanitizedBody.password='***SECRET***'
+    }
 
-
+    if (sanitizedBody.newPassword){
+        sanitizedBody.newPassword='***SECRET***'
     }
   
+    if (sanitizedBody.currentPassword){
+        sanitizedBody.currentPassword='***SECRET***'
+    }
     const requestLog = {
       method,
       originalUrl,

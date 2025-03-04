@@ -31,7 +31,7 @@ export class AppModule implements NestModule {
       res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
       res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
       res.header('Access-Control-Allow-Credentials', 'true');
-
+      res.header('Referrer-Policy','no-referrer');
       if (req.method === 'OPTIONS') {
         res.sendStatus(204);
       } else {

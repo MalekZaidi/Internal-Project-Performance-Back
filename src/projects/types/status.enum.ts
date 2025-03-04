@@ -1,4 +1,12 @@
 export enum status {
-    Started,InProgress, Completed,OnHold
+    STARTED = 'Started'
+    
+    
+    ,InProgress= 'InProgress', 
+    
+    COMPLETED='Completed',
+    
+    
+    ONHOLD='Onhold'
   }
   
