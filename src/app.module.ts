@@ -8,6 +8,10 @@ import { AuthModule } from './auth/auth.module';
 import { LoggerMiddleware } from './config/logging.interceptor';
 import { RateLimitMiddleware } from './config/rate-limit.middleware';
 import { ProjectsModule } from './projects/projects.module';
+import { ResourceModule } from './resource/resource.module';
+import { ReportModule } from './report/report.module';
+import { RiskModule } from './risk/risk.module';
+import { BudgetModule } from './budget/budget.module';
 
 @Module({
   imports: [
@@ -16,6 +20,10 @@ import { ProjectsModule } from './projects/projects.module';
     UsersModule,
     AuthModule,
     ProjectsModule,
+    ResourceModule,
+    ReportModule,
+    RiskModule,
+    BudgetModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,13 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { ProjectService } from '../services/project.service';
 import { CreateProjectDto } from '../dtos/create-project.dto';
 import { Project } from '../schemas/projects.schema';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UpdateProjectDto } from '../dtos/update-project.dtop';
-
-
-
-
+import { AuthGuard } from 'src/auth/middlewares/jwt-auth.guard';
+import { RoleGuard } from 'src/auth/middlewares/role.guard';
+import { Roles } from 'src/auth/middlewares/roles.decorator';
 
 @ApiTags("Projects")
 
@@ -15,7 +14,9 @@ import { UpdateProjectDto } from '../dtos/update-project.dtop';
 export class ProjectsController {
     constructor(private readonly projectService:ProjectService){}
 
-
+    @UseGuards(AuthGuard,RoleGuard)
+    @Roles('admin')
+    @ApiBearerAuth()
     @Post()
     async create(@Body() createProjectDto:CreateProjectDto):Promise<Project>{
 
