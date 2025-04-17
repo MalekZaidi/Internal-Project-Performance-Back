@@ -20,10 +20,9 @@ export class RoleGuard implements CanActivate {
     if (!user.role) {
       throw new ForbiddenException('You do not have a role assigned')
     }
-
     console.log('🔑 User Role:', user.role);
     console.log('✅ Required Roles:', requiredRoles);
-
+    
     if (!requiredRoles.includes(user.role)) {
       throw new ForbiddenException('You do not have the required permissions');
     }

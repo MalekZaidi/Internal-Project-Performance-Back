@@ -6,14 +6,18 @@ import { ProjectsController } from './controllers/projects.controller';
 import { AuthModule } from 'src/auth/auth.module';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { UsersModule } from 'src/users/users.module';
+import { SkillsModule } from 'src/skills/skills.module';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
     imports : [MongooseModule.forFeature([{name:Project.name, schema:ProjectSchema}]), 
     AuthModule,
     JwtModule,
-    UsersModule 
- 
-      ],
+    UsersModule ,     
+    SkillsModule,
+    NotificationsModule,
+
+       ],
     providers : [ProjectService,JwtService ],
     controllers: [ProjectsController],
       

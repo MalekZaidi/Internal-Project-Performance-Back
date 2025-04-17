@@ -1,12 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 import { Role } from '../types/user-role.enum';
 import * as bcrypt from 'bcrypt';
+import { Skill } from 'src/skills/schemas/skill.schema';
 
 export type UserDocument = Document & User;
 
 @Schema()
 export class User {
+
+  
   @Prop({ required: true })
   fullName: string;
 
@@ -21,6 +24,10 @@ export class User {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Skill' }] })
+  skills: Types.ObjectId[]; 
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

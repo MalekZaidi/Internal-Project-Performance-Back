@@ -12,6 +12,8 @@ import { ResourceModule } from './resource/resource.module';
 import { ReportModule } from './report/report.module';
 import { RiskModule } from './risk/risk.module';
 import { BudgetModule } from './budget/budget.module';
+import { SkillsModule } from './skills/skills.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { BudgetModule } from './budget/budget.module';
     ReportModule,
     RiskModule,
     BudgetModule,
+    SkillsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -49,6 +53,6 @@ export class AppModule implements NestModule {
 
 
     // Applying rate limit to avoid spam login
-    consumer.apply(RateLimitMiddleware).forRoutes('auth/login');
+    // consumer.apply(RateLimitMiddleware).forRoutes('auth/login');
   }
 }

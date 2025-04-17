@@ -19,7 +19,8 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('API Documentation')
     .setDescription('API for my NestJS project')
-    .setVersion('1.0')
+    .setVersion('1.0')   .addTag('users')
+    .addTag('skills').addTag('projects')
     .addBearerAuth() 
     .build();
 

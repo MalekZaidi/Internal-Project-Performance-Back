@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, NotFoundException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, NotFoundException, UseGuards, Query } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
@@ -6,13 +6,14 @@ import { User } from '../schemas/users.schema';
 import { AuthGuard } from 'src/auth/middlewares/jwt-auth.guard';
 import { RoleGuard } from 'src/auth/middlewares/role.guard';
 import { Roles } from 'src/auth/middlewares/roles.decorator';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { SkillsService } from 'src/skills/services/skill.service';
 
 @ApiTags('Users') 
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService, private readonly skillsService: SkillsService) {}
 
   @UseGuards(AuthGuard,RoleGuard)
   @Roles('admin')
@@ -21,8 +22,8 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles('admin')
+  // @UseGuards(AuthGuard, RoleGuard)
+  // @Roles('admin')
   @ApiBearerAuth() 
   @Get()
   
@@ -30,8 +31,8 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @UseGuards(AuthGuard,RoleGuard)
-  @Roles('project_manager')
+  // @UseGuards(AuthGuard,RoleGuard)
+  // @Roles('project_manager','admin')
   @Get(':id')
   async findById(@Param('id') id: string): Promise<User> {
     const user = await this.usersService.findById(id);
@@ -55,4 +56,42 @@ export class UsersController {
     await this.usersService.delete(id);
     return { message: 'User deleted successfully' };
   }
+  // @UseGuards(AuthGuard)
+  // @ApiBearerAuth()
+  @Post(':userId/skills/assign-from-search')
+  @ApiOperation({ 
+    summary: 'Assign a skill from search results to user',
+    description: 'First search for skills using /skills/search, then use the uri from results to assign'
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        escoUri: { type: 'string', example: 'user@example.com' },
+            },
+     
+    },
+  })
+  async assignSkillFromSearch(
+    @Param('userId') userId: string,
+    @Body('escoUri') escoUri: string
+  ) {
+    return this.usersService.searchAndAssignSkill(userId, escoUri);
+  }
+// In users.controller.ts
+@Delete(':userId/skills/:skillId')
+@ApiOperation({ 
+  summary: 'Remove a skill from user',
+  description: 'Removes the specified skill from the user\'s profile'
+})
+@ApiParam({ name: 'userId', description: 'ID of the user' })
+@ApiParam({ name: 'skillId', description: 'ID of the skill to remove' })
+@ApiResponse({ status: 200, description: 'Skill successfully removed' })
+@ApiResponse({ status: 404, description: 'User or skill not found' })
+async removeSkillFromUser(
+  @Param('userId') userId: string,
+  @Param('skillId') skillId: string
+) {
+  return this.usersService.removeSkillFromUser(userId, skillId);
+}
 }
