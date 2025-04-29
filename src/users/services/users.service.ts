@@ -9,17 +9,40 @@ import { Skill, SkillDocument } from 'src/skills/schemas/skill.schema';
 import { SkillsService } from 'src/skills/services/skill.service';
 import * as pdf from 'pdf-parse';
 import * as mammoth from 'mammoth';
-import { Multer } from 'multer';
+import * as mailjet from 'node-mailjet'; 
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private readonly userModel: Model<UserDocument>,@InjectModel(Skill.name) private readonly skillModel: Model<SkillDocument>,private readonly skillsService:SkillsService) {}
+   private readonly mailjetClient;
 
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const newUser = new this.userModel({ ...createUserDto });
-    return newUser.save();
+  constructor(@InjectModel(User.name) private readonly userModel: Model<UserDocument>,@InjectModel(Skill.name) private readonly skillModel: Model<SkillDocument>,private readonly skillsService:SkillsService,
+
+) { this.mailjetClient = mailjet.Client.apiConnect('f0d1f00135c86c5beb143f0052226895', '991d774ee912ba9666bfac369724ba27', {
+});}
+
+
+async create(createUserDto: CreateUserDto): Promise<User> {
+  // 1) Build and save
+  const newUser = new this.userModel({ ...createUserDto });
+  const userPassword = newUser.password;
+  const savedUser = await newUser.save();
+
+  // 2) Send credentials email (fire-and-forget if you prefer)
+  try {
+    await this.sendCredentialsEmail({
+      toEmail:    savedUser.login,
+      fullName:   savedUser.fullName,
+      role:       savedUser.role,
+      password:   userPassword,
+    });
+  } catch (err) {
+    // Log but don’t crash user creation
+    console.error('Failed to send welcome email:', err);
   }
+
+  return savedUser;
+}
 
  
   async findAll(): Promise<User[]> {
@@ -420,4 +443,37 @@ private async processSkillsForUser2(
   await user.save();
   return newSkills;
 }
+
+
+
+private async sendCredentialsEmail({
+  toEmail,
+  fullName,
+  role,
+  password,
+}: {
+  toEmail: string;
+  fullName: string;
+  role: string;
+  password: string;
+}): Promise<void> {
+  await this.mailjetClient
+    .post('send', { version: 'v3.1' })
+    .request({
+      Messages: [{
+        From: { Email: 'malek.zaidi@esprit.tn' },
+        To:   [{ Email: toEmail }],
+        TemplateID:       6941014,
+        TemplateLanguage: true,
+        Variables: {
+          userName:     fullName,
+          userRole:     role,
+          userLogin:    toEmail,
+          userPassword: password,
+        }
+      }]
+    });
 }
+
+
+   }
