@@ -129,7 +129,9 @@ async createCustomSkill(name: string, category?: string, description?: string): 
     category,
     description,
     isCustom: true,
-    lastSynced: new Date()
+    lastSynced: new Date(),
+    escoUri: null 
+
   });
   return newSkill.save();
 }

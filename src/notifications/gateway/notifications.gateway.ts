@@ -5,9 +5,11 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/services/users.service';
 @WebSocketGateway({
   cors: {
-    origin: 'http://localhost:5173', // Your frontend URL
+    origin: 'http://localhost:5173', 
     credentials: true
-  }
+  }, path: '/ws', 
+   
+
 })
 export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
@@ -19,22 +21,31 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   ) {}
 
   async handleConnection(socket: Socket) {
-    const token = socket.handshake.query.token as string;
-    if (!token) {
+    const token = socket.handshake.auth.token;
+    if (!token) { 
+      console.warn('❌ No token provided');
       socket.disconnect();
       return;
     }
-
+  
     try {
-      const payload = this.jwtService.verify(token);
-      const user = await this.usersService.findById(payload.sub);
-      if (!user) socket.disconnect();
-      
-      this.userSocketMap.set(payload.sub, socket.id);
+      const payload = this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+            const user = await this.usersService.findById(payload.userId);
+      if (!user) {
+        console.warn('❌ Invalid user');
+        socket.disconnect();
+      }
+  
+      console.log('✅ Socket connected for user:', payload.userId);
+      this.userSocketMap.set(payload.userId, socket.id);
     } catch (error) {
+      console.error('❌ Token verification failed:', error);
       socket.disconnect();
     }
   }
+  
 
   handleDisconnect(socket: Socket) {
     const userId = [...this.userSocketMap.entries()]

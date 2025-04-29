@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, NotFoundException, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, NotFoundException, UseGuards, Query, UploadedFile, BadRequestException, UseInterceptors } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
@@ -8,6 +8,7 @@ import { RoleGuard } from 'src/auth/middlewares/role.guard';
 import { Roles } from 'src/auth/middlewares/roles.decorator';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SkillsService } from 'src/skills/services/skill.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Users') 
 
@@ -94,4 +95,50 @@ async removeSkillFromUser(
 ) {
   return this.usersService.removeSkillFromUser(userId, skillId);
 }
+
+@Post(':id/upload-cv')
+@UseInterceptors(FileInterceptor('file'))
+@ApiOperation({ summary: 'Upload CV and extract skills' })
+@ApiBody({
+  description: 'CV file (PDF or DOCX)',
+  schema: {
+    type: 'object',
+    properties: {
+      file: { type: 'string', format: 'binary' },
+    },
+  },
+})
+async uploadCV(
+  @Param('id') id: string,
+  @UploadedFile() file: Express.Multer.File,
+) {
+  if (!file) throw new BadRequestException('No file uploaded');
+  const newSkills = await this.usersService.processCV(id, file);
+  return {
+    message: `Added ${newSkills.length} new skills from CV`,
+    skills: newSkills
+  };
+}
+
+@Post(':id/confirm-cv-skills')
+@ApiOperation({ summary: 'Confirm skills extracted from CV' })
+@ApiBody({
+  schema: {
+    type: 'object',
+    properties: {
+      skillIds: { type: 'array', items: { type: 'string' } }
+    }
+  }
+})
+async confirmCVSkills(
+  @Param('id') id: string,
+  @Body() body: { skillIds: string[] }
+) {
+  const user = await this.usersService.addSelectedSkills(id, body.skillIds);
+  return {
+    message: `Added ${body.skillIds.length} skills successfully`,
+    user
+  };
+}
+
 }

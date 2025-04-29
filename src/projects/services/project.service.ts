@@ -74,13 +74,17 @@ export class ProjectService {
     });
 
     this.notificationsGateway.sendNotification(
-      assignedProjectManager,
+      project.assignedProjectManager.toString(),
       {
         type: 'project_assigned',
         message: `You've been assigned as manager for "${project.projectName}"`,
-        data: { projectId: project._id }
+        data: { 
+          projectId: project._id.toString(),
+          projectName: project.projectName
+        }
       }
     );
+  
     return project.save();
   }
 
@@ -209,10 +213,14 @@ async addTeamMembers(projectId: string, userId: string, memberIds: string[]): Pr
       {
         type: 'team_assigned',
         message: `You've been added to project "${project.projectName}"`,
-        data: { projectId: project._id }
+        data: {
+          projectId: project._id.toString(),
+          projectName: project.projectName
+        }
       }
     );
   });
+
 
   return project.save();
 

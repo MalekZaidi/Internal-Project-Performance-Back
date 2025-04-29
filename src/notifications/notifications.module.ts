@@ -1,4 +1,3 @@
-// src/notifications/notifications.module.ts
 import { Module } from '@nestjs/common';
 import { NotificationsGateway } from './gateway/notifications.gateway';
 import { UsersModule } from '../users/users.module';

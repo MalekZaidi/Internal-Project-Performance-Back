@@ -7,7 +7,7 @@ export type SkillDocument = Skill & Document;
 export class Skill {
 
   
-  @Prop({  unique: true })
+  @Prop({  unique: true,sparse: true  })
   escoUri: string;
 
   @Prop({ required: true })

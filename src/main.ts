@@ -19,14 +19,19 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('API Documentation')
     .setDescription('API for my NestJS project')
-    .setVersion('1.0')   .addTag('users')
-    .addTag('skills').addTag('projects')
+    .setVersion('1.0')
+    .addTag('users')
+    .addTag('skills')
+    .addTag('projects')
     .addBearerAuth() 
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document); 
+  SwaggerModule.setup('api/docs', app, document);
+
+  // Remove the first app.listen(3001) call
   await app.listen(3000);
+  
   console.log('🚀 Server running on http://localhost:3000');
   console.log('📄 Swagger Docs available at http://localhost:3000/api/docs');
 }
