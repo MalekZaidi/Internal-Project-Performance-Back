@@ -140,5 +140,86 @@ async confirmCVSkills(
     user
   };
 }
-
+// @Post(':id/upload-cv2')
+// @UseInterceptors(FileInterceptor('file'))
+// @ApiOperation({ summary: 'Upload CV and parse using Affinda' })
+// @ApiBody({
+//   description: 'CV file (PDF or DOCX)',
+//   schema: {
+//     type: 'object',
+//     properties: {
+//       file: { type: 'string', format: 'binary' },
+//     },
+//   },
+// })
+// async uploadCV2(
+//   @Param('id') id: string,
+//   @UploadedFile() file: Express.Multer.File,
+// ) {
+//   if (!file) throw new BadRequestException('No file uploaded');
+//   const { skills, educations, certifications } = await this.usersService.processCV(id, file);
+  
+//   return {
+//     message: 'CV parsed successfully',
+//     data: {
+//       newSkills: skills,
+//       education: educations,
+//       certifications: certifications
+//     }
+//   };
+// }
+@Post(':id/confirm-cv-data2')
+@ApiOperation({ summary: 'Confirm parsed CV data' })
+@ApiBody({
+  schema: {
+    type: 'object',
+    properties: {
+      skillIds: { type: 'array', items: { type: 'string' } },
+      educations: { 
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            institution: { type: 'string' },
+            degree: { type: 'string' },
+            fieldOfStudy: { type: 'string' },
+            startYear: { type: 'number' },
+            endYear: { type: 'number' }
+          }
+        }
+      },
+      certifications: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            issuer: { type: 'string' },
+            year: { type: 'number' }
+          }
+        }
+      }
+    }
+  }
+})
+async confirmCVData2(
+  @Param('id') id: string,
+  @Body() body: { 
+    skillIds: string[],
+    educations: any[],
+    certifications: any[]
+  }
+) {
+  const user = await this.usersService.confirmCVData(
+    id,
+    body.skillIds,
+    body.educations,
+    body.certifications
+  );
+  
+  return {
+    message: 'CV data confirmed successfully',
+    user
+  };
+}
 }

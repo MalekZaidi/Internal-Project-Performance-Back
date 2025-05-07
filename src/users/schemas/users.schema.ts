@@ -3,6 +3,7 @@ import mongoose, { Document, Types } from 'mongoose';
 import { Role } from '../types/user-role.enum';
 import * as bcrypt from 'bcrypt';
 import { Skill } from 'src/skills/schemas/skill.schema';
+import { Job } from '../types/user-job.enum';
 
 export type UserDocument = Document & User;
 
@@ -23,10 +24,37 @@ export class User {
   role: Role;
 
   @Prop({ default: true })
+  
   isActive: boolean;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Skill' }] })
   skills: Types.ObjectId[]; 
+
+  @Prop([{ 
+    institution: String,
+    degree: String,
+    fieldOfStudy: String,
+    startYear: Number,
+    endYear: Number
+  }])
+  educations: {
+    institution: string;
+    degree: string;
+    fieldOfStudy?: string;
+    startYear?: number;
+    endYear?: number;
+  }[];
+
+  @Prop([{
+    name: String,
+    issuer: String,
+    year: Number
+  }])
+  certifications: {
+    name: string;
+    issuer?: string;
+    year?: number;
+  }[];
 
 }
 

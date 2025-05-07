@@ -474,6 +474,91 @@ private async sendCredentialsEmail({
       }]
     });
 }
+// Add to UsersService class
+private async parseCVWithAffinda(file: Express.Multer.File): Promise<any> {
+  const FormData = require('form-data');
+  const fetch = require('node-fetch');
 
+  const form = new FormData();
+  form.append('file', file.buffer, {
+    filename: file.originalname,
+    contentType: file.mimetype
+  });
 
+  try {
+    const response = await fetch('https://api.affinda.com/v2/resumes', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer aff_7bc5444ef12dea9d5b92fdbd3d84931785068373`,
+        ...form.getHeaders()
+      },
+      body: form
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error?.message || 'Affinda API error');
+    return data;
+  } catch (error) {
+    throw new BadRequestException(`CV parsing failed: ${error.message}`);
+  }
+}
+
+async processCV2(
+  userId: string,
+  file: Express.Multer.File
+): Promise<{ skills: SkillDocument[], educations: any[], certifications: any[] }> {
+  const affindaData = await this.parseCVWithAffinda(file);
+  
+  // Process Skills
+  const skillNames = affindaData.skills?.map(s => s.name) || [];
+  const skills = await this.processSkillsForUser(userId, skillNames);
+
+  // Process Education
+  const educations = affindaData.education?.map(edu => ({
+    institution: edu.organization,
+    degree: edu.accreditation?.education,
+    fieldOfStudy: edu.accreditation?.educationMajor,
+    startYear: edu.startDate?.year,
+    endYear: edu.endDate?.year
+  })) || [];
+
+  // Process Certifications
+  const certifications = affindaData.certifications?.map(cert => ({
+    name: cert.name,
+    issuer: cert.issuer,
+    year: cert.date?.year
+  })) || [];
+
+  // Update user document
+  await this.userModel.findByIdAndUpdate(userId, {
+    $addToSet: {
+      educations: { $each: educations },
+      certifications: { $each: certifications }
+    }
+  });
+
+  return { skills, educations, certifications };
+}
+
+async confirmCVData(
+  userId: string,
+  skillIds: string[],
+  educations: any[],
+  certifications: any[]
+): Promise<UserDocument> {
+  // Add skills
+  const user = await this.addSelectedSkills(userId, skillIds);
+  
+  // Update education and certifications
+  return this.userModel.findByIdAndUpdate(
+    userId,
+    {
+      $addToSet: {
+        educations: { $each: educations },
+        certifications: { $each: certifications }
+      }
+    },
+    { new: true }
+  ).populate('skills', 'name description category').exec();
+}
    }

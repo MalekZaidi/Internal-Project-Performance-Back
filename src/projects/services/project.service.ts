@@ -171,7 +171,6 @@ async findAllProjects(user?: UserDocument): Promise<Project[]> {
 
     return updatedProject;
   }
-// In project.service.ts
 async addTeamMembers(projectId: string, userId: string, memberIds: string[]): Promise<Project> {
   const project = await this.projectModel.findById(projectId);
   if (!project) throw new NotFoundException('Project not found');
@@ -196,17 +195,17 @@ async addTeamMembers(projectId: string, userId: string, memberIds: string[]): Pr
       !existingMembers.includes(id) && 
       !memberIds.slice(0, memberIds.indexOf(id)).includes(id)
   );
-
   if (newMembers.length === 0) {
       throw new BadRequestException('No new valid members to add');
   }
+
 
   // Add only new unique members
   project.assignedTeamMembers = [
       ...project.assignedTeamMembers,
       ...newMembers.map(m => new Types.ObjectId(m))
   ];
-
+ 
   newMembers.forEach(memberId => {
     this.notificationsGateway.sendNotification(
       memberId,

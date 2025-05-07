@@ -14,6 +14,8 @@ import { RiskModule } from './risk/risk.module';
 import { BudgetModule } from './budget/budget.module';
 import { SkillsModule } from './skills/skills.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { TaskModule } from './task/task.module';
+
 
 @Module({
   imports: [
@@ -28,9 +30,10 @@ import { NotificationsModule } from './notifications/notifications.module';
     BudgetModule,
     SkillsModule,
     NotificationsModule,
+    TaskModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController ],
+  providers: [AppService ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -26,13 +26,13 @@ export class Skill {
   lastSynced: Date;
 
   @Prop()
-  escoId?: string; // Added to store ESCO identifier separately
+  escoId?: string;
 
   @Prop()
-  altLabels?: string[]; // Alternative names for the skill
+  altLabels?: string[]; 
 
   @Prop()
-  conceptType?: string; // ESCO concept type (skill/competence/knowledge)
+  conceptType?: string; 
 }
 
 export const SkillSchema = SchemaFactory.createForClass(Skill);
