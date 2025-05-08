@@ -8,6 +8,8 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from 'src/users/users.module';
+import { BudgetModule } from 'src/budget/budget.module';
+import { BudgetService } from 'src/budget/services/budget.service';
 @Module({
 
 imports : [MongooseModule.forFeature([{name:Task.name,schema:TaskSchema}]),
@@ -15,8 +17,10 @@ HttpModule,
 NotificationsModule,
 AuthModule,
 JwtModule,
-UsersModule],
-providers : [TaskService],
+UsersModule,
+BudgetModule
+],
+providers : [TaskService,BudgetService],
 controllers :[TaskController],
 exports : [MongooseModule]
 

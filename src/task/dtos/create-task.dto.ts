@@ -1,4 +1,5 @@
-import { IsDateString, IsMongoId, IsNotEmpty,IsEnum,IsNumber, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsDateString, IsMongoId, IsNotEmpty,IsEnum,IsNumber, IsOptional, IsDate } from 'class-validator';
 
 export class CreateTaskDto {
   @IsNotEmpty()
@@ -40,4 +41,11 @@ export class CreateTaskDto {
   @IsNumber()
   @IsOptional()
   workingHours?: number;
+
+
+  @IsOptional()
+  @IsDateString()
+  @Type(() => Date)
+  completedAt?: Date;
+  
 }

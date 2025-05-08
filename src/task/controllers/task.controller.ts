@@ -11,17 +11,11 @@ export class TaskController {
   constructor(private readonly taskService: TaskService,
 
   ) {}
-  @Get('getall')
-@UseGuards(AuthGuard)
-async getAll(
-  @Query('projectId') projectId: string,
-  @Req() req: Request & { user: UserDocument }
-) {
-  if (!projectId) {
-    throw new BadRequestException('Project ID is required');
-  }
-  return this.taskService.findAll2(projectId, req.user);
-}
+  @Get('getall/:idProject')
+  getAll (@Param('idProject') idProject:string)  {
+    return this.taskService.findAll2(idProject);
+
+ }
   @Post()
   @UseGuards(AuthGuard)
   create(@Body() dto: CreateTaskDto, @Req() req) {

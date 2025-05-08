@@ -20,7 +20,7 @@ export class Task extends Document {
   startDate: Date;
 
   @Prop({ type: Date })
-  dueDate: Date;
+  endDate: Date;
 
   @Prop({ default: 'pending', enum: ['pending', 'in-progress', 'completed'] })
   status: string;
@@ -37,12 +37,14 @@ export class Task extends Document {
   @Prop({ default: 0 })
   actualWorkedHours: number;
 
-  /** in business hours (24h days minus weekends) */
   @Prop({ default: 0 })
   workingHours: number;
   
     @Prop({ default: 0 })
     order: number;
+    
+    @Prop({ default: false })
+  budgetTracked: boolean;
 }
 export type TaskDocument= Task & Document;
 export const TaskSchema = SchemaFactory.createForClass(Task);

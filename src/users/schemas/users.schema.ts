@@ -3,7 +3,7 @@ import mongoose, { Document, Types } from 'mongoose';
 import { Role } from '../types/user-role.enum';
 import * as bcrypt from 'bcrypt';
 import { Skill } from 'src/skills/schemas/skill.schema';
-import { Job } from '../types/user-job.enum';
+import { Position } from '../types/user-position.enum';
 
 export type UserDocument = Document & User;
 
@@ -55,7 +55,13 @@ export class User {
     issuer?: string;
     year?: number;
   }[];
-
+  @Prop({
+    type: String,
+    enum: Position,
+    required: false,
+    default: null,
+  })
+  position?: Position;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

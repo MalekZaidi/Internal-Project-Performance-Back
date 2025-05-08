@@ -43,8 +43,7 @@ export class UsersController {
     return user;
   }
 
-  @UseGuards(AuthGuard,RoleGuard)
-  @Roles('admin','project_manager')
+  @UseGuards(AuthGuard)
   @Put(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<User> {
     return this.usersService.update(id, updateUserDto);
@@ -168,6 +167,32 @@ async confirmCVSkills(
 //     }
 //   };
 // }
+// users.controller.ts
+@Post(':id/upload-cv2')
+@UseInterceptors(FileInterceptor('file'))
+@ApiOperation({ summary: 'Upload CV and parse using Affinda' })
+@ApiBody({
+  description: 'CV file (PDF or DOCX)',
+  schema: {
+    type: 'object',
+    properties: {
+      file: { type: 'string', format: 'binary' },
+    },
+  },
+})
+async uploadCV2(
+  @Param('id') id: string,
+  @UploadedFile() file: Express.Multer.File,
+) {
+  if (!file) throw new BadRequestException('No file uploaded');
+  const parsedData = await this.usersService.processCV2(id, file);
+  
+  return {
+    message: 'CV parsed successfully',
+    data: parsedData
+  };
+}
+
 @Post(':id/confirm-cv-data2')
 @ApiOperation({ summary: 'Confirm parsed CV data' })
 @ApiBody({

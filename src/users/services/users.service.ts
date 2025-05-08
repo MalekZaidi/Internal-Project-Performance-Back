@@ -495,10 +495,18 @@ private async parseCVWithAffinda(file: Express.Multer.File): Promise<any> {
       body: form
     });
 
+    
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error('Affinda API Error:', errorBody);
+      throw new Error(`Affinda API error: ${response.status} ${response.statusText}`);
+    }
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error?.message || 'Affinda API error');
+    console.log('Affinda Response:', JSON.stringify(data, null, 2)); // Add debug logging
     return data;
   } catch (error) {
+   console.error('Affinda Parsing Error:', error);
     throw new BadRequestException(`CV parsing failed: ${error.message}`);
   }
 }
@@ -508,36 +516,37 @@ async processCV2(
   file: Express.Multer.File
 ): Promise<{ skills: SkillDocument[], educations: any[], certifications: any[] }> {
   const affindaData = await this.parseCVWithAffinda(file);
-  
-  // Process Skills
-  const skillNames = affindaData.skills?.map(s => s.name) || [];
-  const skills = await this.processSkillsForUser(userId, skillNames);
 
-  // Process Education
+  // Extract skills from both 'skills' and 'customSkills' arrays
+  const skillNames = [
+    ...(affindaData.skills?.map(s => s.name) || []),
+    ...(affindaData.customSkills?.map(s => s.name) || [])
+  ];
+  
+  // Process education with proper date handling
   const educations = affindaData.education?.map(edu => ({
     institution: edu.organization,
-    degree: edu.accreditation?.education,
-    fieldOfStudy: edu.accreditation?.educationMajor,
-    startYear: edu.startDate?.year,
-    endYear: edu.endDate?.year
+    degree: edu.accreditation?.inputStr || 'Degree not specified',
+    fieldOfStudy: edu.accreditation?.education || '',
+    startYear: edu.dates?.startDate?.year || null,
+    endYear: edu.dates?.endDate?.year || null
   })) || [];
 
-  // Process Certifications
+  // Process certifications with improved field mapping
   const certifications = affindaData.certifications?.map(cert => ({
     name: cert.name,
     issuer: cert.issuer,
-    year: cert.date?.year
+    year: cert.date?.year || null
   })) || [];
 
-  // Update user document
-  await this.userModel.findByIdAndUpdate(userId, {
-    $addToSet: {
-      educations: { $each: educations },
-      certifications: { $each: certifications }
-    }
-  });
+  // Process skills and get full skill documents
+  const skills = await this.processSkillsForUser(userId, skillNames);
 
-  return { skills, educations, certifications };
+  return {
+    skills,
+    educations: educations.filter(e => e.institution && e.degree),
+    certifications: certifications.filter(c => c.name)
+  };
 }
 
 async confirmCVData(

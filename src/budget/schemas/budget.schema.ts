@@ -1,19 +1,29 @@
+// budget.schema.ts
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document, Schema as MongooseSchema } from "mongoose";
+import { Position } from "src/users/types/user-position.enum";
 
-import * as mongoose from "mongoose"
+export type BudgetDocument = Budget & Document;
 
-export type BudgetDocument = Document & Budget ;
+@Schema({ timestamps: true })
+export class Budget {
+  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Project' })
+  projectId: MongooseSchema.Types.ObjectId;
 
-@Schema()
-export class Budget { 
+  @Prop({ required: true })
+  initialBudget: number;
 
-    @Prop({required: true})
-    initialBudget:Number;
+  @Prop({ required: true })
+  currentBudget: number;
 
-    @Prop({required: true})
-    actualBudget : Number;
-
-    @Prop({required:true, type:mongoose.Schema.Types. ObjectId })
-    associatedProject : mongoose.ObjectId;  
+  @Prop([{
+    position: { type: String, enum: Object.values(Position), required: true },
+    hourlyRate: { type: Number, required: true }
+  }])
+  rates: Array<{
+    position: Position;
+    hourlyRate: number;
+  }>;
 }
-export const BudgetSchema=SchemaFactory.createForClass(Budget);
+
+export const BudgetSchema = SchemaFactory.createForClass(Budget);

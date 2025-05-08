@@ -1,5 +1,7 @@
-import { IsEmail, IsEnum, IsNotEmpty, MinLength, Matches, Length,IsOptional, IsString, IsArray, IsMongoId  } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, MinLength, Matches, Length,IsOptional, IsString, IsArray, IsMongoId, IsNumber, ValidateNested  } from 'class-validator';
 import { Role } from '../types/user-role.enum';
+import { Position } from '../types/user-position.enum';
+import { Type } from 'class-transformer';
 
 const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 
@@ -30,4 +32,62 @@ export class CreateUserDto {
   @IsOptional()
   escoUris?: string[];
 
+  @IsOptional()
+  @IsEnum(Position, { message: 'Invalid position' })
+  position?: Position;
+}
+// create-user.dto.ts
+export class EducationDto {
+  @IsNotEmpty()
+  @IsString()
+  institution: string;
+
+  @IsNotEmpty()
+  @IsString()
+  degree: string;
+
+  @IsOptional()
+  @IsString()
+  fieldOfStudy?: string;
+
+  @IsOptional()
+  @IsNumber()
+  startYear?: number;
+
+  @IsOptional()
+  @IsNumber()
+  endYear?: number;
+}
+
+export class CertificationDto {
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  issuer?: string;
+
+  @IsOptional()
+  @IsNumber()
+  year?: number;
+}
+
+export class ConfirmCvDataDto {
+  @IsArray()
+  @IsOptional()
+  @IsMongoId({ each: true })
+  skillIds?: string[];
+
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => EducationDto)
+  educations?: EducationDto[];
+
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CertificationDto)
+  certifications?: CertificationDto[];
 }
